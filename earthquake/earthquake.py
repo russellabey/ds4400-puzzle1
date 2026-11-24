@@ -77,3 +77,5 @@ class Earthquake:
         """
         y_hat = np.asarray(y_hat, dtype=float).reshape(1, 2)
         return float(np.mean((y_hat - self._y) ** 2))
+
+
