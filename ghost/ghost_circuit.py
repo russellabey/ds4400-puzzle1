@@ -19,6 +19,7 @@ and the meter (y) and names the devices it believes are on the circuit.
     evaluate(estimate)                      # 20 fresh circuits
 """
 import numpy as np
+from sklearn.linear_model import Lasso
 
 # the graded setup
 OFFICIAL = dict(n_hour=72, n_dev=150, n_on=8, watts=(20, 1500),
@@ -111,6 +112,34 @@ class GhostCircuit:
                     wrong=len(guess - truth),
                     missed=len(truth - guess),
                     exact=guess == truth)
+
+
+LAM = 11.4
+
+
+def estimate(x, y, lam=LAM):
+    """ names the devices whose lasso weight is nonzero
+
+    Fits baseline + x @ w to the meter by minimizing
+
+        mean((y - b - x @ w) ** 2) + lam * sum(abs(w))
+
+    over the intercept b (not penalized) and the weights w, one per device.
+    sklearn's Lasso minimizes (1 / (2 n)) * ||y - b - x w||^2 + alpha * ||w||_1,
+    so alpha = lam / 2 gives exactly the objective above.
+
+    Args:
+        x (np.array): (n_hour, n_dev), x[t, i] = 1 if device i was on in hour t
+        y (np.array): (n_hour,), metered watts in each hour
+        lam (float): weight on the L1 penalty (default LAM = 5.49)
+
+    Returns:
+        device_idx (np.array): columns of x whose fitted weight is nonzero
+    """
+    model = Lasso(alpha=lam / 2, fit_intercept=True, max_iter=100_000,
+                  tol=1e-8)
+    model.fit(x, y)
+    return np.flatnonzero(model.coef_)
 
 
 def evaluate(estimate, n_circuit=20, seed=0, verbose=True, **setup):
