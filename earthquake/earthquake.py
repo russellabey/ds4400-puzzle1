@@ -8,7 +8,7 @@ shaking, t[i] (seconds), plus a little timing noise.
     from earthquake import Earthquake
 
     quake = Earthquake(seed=0)    # 10 stations, defaults below
-    quake.x                       # (n, 2) station positions, km
+    quake.x                       # (n, 2) station positions, km - array of locations
     quake.t                       # (n,) delay before each station felt it, s
     quake.speed                   # wave speed, km/s
     quake.evaluate([3.1, -7.2])   # mean squared error of a guess, km^2
@@ -77,5 +77,3 @@ class Earthquake:
         """
         y_hat = np.asarray(y_hat, dtype=float).reshape(1, 2)
         return float(np.mean((y_hat - self._y) ** 2))
-
-
